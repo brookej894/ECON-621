@@ -1,0 +1,157 @@
+---
+title: "ECON 621"
+author: "Brooke Johnson"
+date: "1/19/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+HOMEWORK 1 PROBLEM SET
+
+**Part 1 EDA**
+
+```{r}
+
+heart_disease <- read.csv("../ECON 621/heart_disease.csv", header=FALSE, stringsAsFactors = TRUE)
+
+#looking at the dimensions to see how many rows & columns
+dim(heart_disease)
+# 302 rows, 14 columns
+
+#getting a look at the data
+head(heart_disease)
+str(heart_disease)
+#no column names yet, mix of string/numeric
+```
+For the first step I'm going to name the columns based on the variable descriptions. 
+
+```{r}
+colnames(heart_disease)
+# columns temp-named V1-V14
+
+#renaming columns
+colnames(heart_disease)[colnames(heart_disease) == "V1"] <- "age"
+colnames(heart_disease)[colnames(heart_disease) == "V2"] <- "sex"
+colnames(heart_disease)[colnames(heart_disease) == "V3"] <- "chest_pain_type"
+colnames(heart_disease)[colnames(heart_disease) == "V4"] <- "trestbps"
+colnames(heart_disease)[colnames(heart_disease) == "V5"] <- "cholesterol"
+colnames(heart_disease)[colnames(heart_disease) == "V6"] <- "fasting_blood_sugar"
+colnames(heart_disease)[colnames(heart_disease) == "V7"] <- "resting_ecg"
+colnames(heart_disease)[colnames(heart_disease) == "V8"] <- "max_heart_rate"
+colnames(heart_disease)[colnames(heart_disease) == "V9"] <- "exercise_induced_angina"
+colnames(heart_disease)[colnames(heart_disease) == "V10"] <- "oldpeak"
+colnames(heart_disease)[colnames(heart_disease) == "V11"] <- "slope"
+colnames(heart_disease)[colnames(heart_disease) == "V12"] <- "number_vessels"
+colnames(heart_disease)[colnames(heart_disease) == "V13"] <- "thal"
+colnames(heart_disease)[colnames(heart_disease) == "V14"] <- "diagnosis"
+colnames(heart_disease)
+
+summary(heart_disease)
+```
+We can see from the summary that number_vessels and thal have missing values. It will be best to convert the proxy values into "NA" values so they can be analyzed. 
+```{r}
+#converting proxy NA values to NA
+heart_disease[, c("number_vessels", "thal")] <- sapply(heart_disease[, c("number_vessels", "thal")], function(x) {
+  x[x == "?"] <- NA
+  return(x)
+})
+```
+Now I can check for the NA values:
+```{r}
+#check for NA's
+table(apply(heart_disease, 1, function(x) {any(is.na(x))}))
+# we can see that there are some TRUE results meaning NA values found
+# this is consistent with the previous step where we replaced proxy missing values
+```
+I'll filter out the data with the NA values so the working data is complete:
+```{r}
+heart_disease <- heart_disease[!apply(heart_disease, 1, function(x) {any(is.na(x))}),]
+
+# checking again for NAs to ensure we've filtered them all out:
+table(apply(heart_disease, 1, function(x) {any(is.na(x))}))
+```
+Next I'll look closer at each variable to see the type.
+```{r}
+#getting a summary of each variable to look at the data categories
+summary(heart_disease)
+
+#need to convert number_vessels to numeric and thal to factor
+heart_disease$number_vessels <- as.numeric(heart_disease$number_vessels)
+heart_disease$thal <- as.factor(heart_disease$thal)
+```
+Now I want to get a feel for the distribution of the variables:
+``` {r}
+#looking at the distribution of category variables
+cat_cols <- c("sex","chest_pain_type", "fasting_blood_sugar", "resting_ecg", "exercise_induced_angina", "slope", "number_vessels", "thal", "diagnosis")
+sapply(heart_disease[, cat_cols], function(x) {
+  c(head(sort(table(x)/length(x), decreasing = T)), n_unique_vals = length(unique(x)))
+  })
+```
+To visualize, I'll create histograms for all the variables:
+```{r}
+hist(heart_disease$age)
+hist(heart_disease$trestbps)
+hist(heart_disease$cholesterol)
+hist(heart_disease$max_heart_rate)
+hist(heart_disease$oldpeak)
+hist(heart_disease$number_vessels)
+```
+Lastly, I'll look at the relationships between variables by looking at the covariance:
+``` {r}
+#examining the covariance between variables
+num_cols <- c("age", "trestbps", "cholesterol", "max_heart_rate", "oldpeak", "number_vessels")
+cor(heart_disease[, num_cols])
+```
+**Part 2 Data Visualization**
+```{r}
+test_scores <- read.csv("../ECON 621/test_scores.csv", header=TRUE, stringsAsFactors = TRUE)
+head(test_scores)
+summary(test_scores)
+```
+**Question 1**
+Construct a bar graph examining how many students in each school have at least one test score from 2015 (barplot or ggplot)
+``` {r}
+# first, subset the data
+is_2015 <- test_scores[test_scores$academic_year == 2015,]
+has_score <- is_2015[!duplicated(is_2015$student_id), ]
+```
+Now, to create the bar chart
+``` {r}
+barplot(table(has_score$school), xlim = c(0, 10), ylim = c(0, 550))
+```
+
+**Question 2**
+Build a histogram to show the distribution of 3rd grade SBAC ELA scores in 2015, include mean score
+``` {r}
+# First to subset the data
+is_3rd_grade <- is_2015[is_2015$gradelevel == 3,]
+is_ELA <- is_3rd_grade[is_3rd_grade$subject == "ELA",]
+is_SBAC <- is_ELA[is_ELA$testname == "SBAC Preliminary",]
+```
+Now to create the histogram
+```{r}
+hist(is_SBAC$testscore, main = "Distribution of 3rd Grade SBAC ELA Scores - 2015", xlab = "Test Scores")
+abline(v= mean(is_SBAC$testscore), col="red")
+```
+**Question 3**
+Create a scatter plot to show the relationship between SBAC & NWEA MAP for 4th grade students in Math of 2015
+``` {r}
+is_4th_grade <- is_2015[is_2015$gradelevel == 4,]
+is_test <- is_4th_grade[is_4th_grade$testname %in% c("SBAC Preliminary", "NWEA MAP"),]
+is_math <- is_test[is_test$subject == "Math",]
+is_math <- is_math[order(is_math$testperiod, decreasing = T),]
+is_math <- is_math[!duplicated(is_math[, c("student_id", "testname")]),]
+library(reshape2)
+library(ggplot2)
+is_math <- dcast(is_math, student_id + school ~ testname, value.var = "testscore")
+```
+Now to create the graph
+```{r}
+ggplot(data = is_math, aes(x = `NWEA MAP`, y = `SBAC Preliminary`, color = school)) +
+  geom_point()
+```

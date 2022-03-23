@@ -1,0 +1,612 @@
+---
+title: "ECON 621"
+author: "Brooke Johnson"
+date: "1/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Class One 1/18/22
+
+R is program/core software (used for data analysis)
+R Studio is integrated development environment (more robust interface)
+R Markdown is a specific file format in R where you can imbed and execute code directly
+
+###LECTURE 2 MATERIAL
+
+Useful R commands, code + functions
+<- assigns values
+ls( )      lists objects in current environment
+sum( )     sum elements in a vector
+length( )  count the elements in your vector
+min( )     lowest value-element in a vector
+max( )     highest value-element in a vector
+unique( )  lists all unique objects in a vector
+seq( )     produces integer values increasing by 1 (by default)
+by         modifier for seq( ), or other commands
+class( )   confirm the type of a vector, object, etc.
+as.+       converts vector to a difference type
+c( )       creates a vector
+list( )    Generates a 1-dimensional list
+
+What is a vector in R?
+Sequences of elements of the same basic type. Can be rows or columns
+Examples: ages, weights, GPA's for a set of students
+
+Different Variable Types in R
+1. Character        Ex. "a", "economics", "2"
+2. Numeric          Ex. 3, 1/2, 3.75, etc
+3. Integer (whole)  Ex. 3L, 9L (add L to denote integer)
+4. Logical          Ex. binary, TRUE, FALSE
+5. Factor           Ex. can be any set of values
+
+Making a vector and using basic commands
+
+``` {r}
+econ621_heights_cm <- c(186, 178, 188, 173, 158, 174, 165, 165, 157, 162.5, 181, 178.5, 177.8)
+
+# add up all the heights: 
+sum(econ621_heights_cm)
+
+# find the shortest person in class:
+min(econ621_heights_cm)
+
+# find the tallest person in class:
+max(econ621_heights_cm)
+
+# find the number of heights listed:
+length(econ621_heights_cm)
+
+# find all the unique values:
+unique(econ621_heights_cm)
+
+# count how many unique values in list:
+length(unique(econ621_heights_cm))
+
+# class of the vector:
+class(econ621_heights_cm)
+
+
+#find the average height:
+econ621_avg_height <- sum(econ621_heights_cm)/length(econ621_heights_cm)
+econ621_avg_height
+
+#or use:
+mean(econ621_heights_cm)
+
+# create a sequence
+seq(1,10)
+seq(1, 10, by = 0.5)
+
+```
+
+More commands in R for more complex data structures
+
+matrix( )         creates a matrix (every element must be same type)
+data.frame( )     creates a data frame (can include mlt. variable types)
+cbind( )          combines columns in one object
+rbind( )          combines rows in a one object
+
+**Packages in R**
+Packages in R are collections of pre-made R functions to perform different 
+operations. 
+
+Ex. ggplot2 (used for producing robust graphs)
+Ex. knitr/rmarkdown (needed to produce rmarkdown)
+
+To install:
+install.+         used to install a new package
+library( )        access of the contents of the package in current environment
+
+``` {r}
+
+# Using cbind & rbind
+z <- 1:3
+y <- 10:12
+cbind(z, y)
+
+```
+
+**Help Files**
+
+?+              opens the help page for the specified object
+??+             object searches help pages containing name of the object
+
+```{r} 
+?seq
+??seq
+```
+
+**Different Data Structures**
+
+1-dimensional data structures: vectors vs lists
+Vectors (all elements have to be the same type - homogeneous)
+Lists (elements can be any type - heterogeneous)
+
+2-dimensional data structures: Matrix vs Data Frame
+Matrix (all elements have to be the same type - homogeneous)
+Data Frame (elements can be any type - heterogeneous)
+
+``` {r}
+# Making a list
+x <- list(1, "a", TRUE, c(4, 5, 6))
+x
+
+# Making a matrix
+m <- matrix(1:6, nrow = 2, ncol = 3)
+m
+
+# Columns and rows can be named in the matrix
+rownames(m) <- c("row1", "row2")
+colnames(m) <- c("a", "b", "c")
+m
+```
+
+###LECTURE 3 MATERIAL
+
+Accessing and Modifying Data
+
+Two main ways to access data:
+1. via connecting to a database
+2. import data files directly into R
+Command: read.csv(".../....file_path")
+
+**Useful Commands, Codes, & Functions**
+[ ]       subset data
+Ex. Suppose a researcher wants to focus on individuals with incomes > $50,000
+Ex. Suppose a researcher wants to focus on wines with alcohol content > 14%
+
+%in%      checks if an element is included in a set
+Read as "is included in"
+
+order( )  function that gives the index position of smallest to largest values
+
+**Different types of sub-setting**
+1. Subset a vector by different conditions (<, >, <=, >=, ==, !=)
+Combine elements using & and | (and / or)
+2. Subset matrices via column & row specification
+Leaving a portion of the sub-setting code blank will automatically select all
+rows or all columns respectively 
+
+``` {r}
+# sub-setting data frames
+wine_data <- read.csv("../ECON 621/wine_components.csv")
+
+# get the first row and first column
+wine_data[1,2]
+
+#print all the data for the first wine
+wine_data[1,]
+
+# print all the alcohol content for all wines
+wine_data[,2]
+
+# print the type of wine for the first 5 wines
+wine_data[1:5, 1]
+
+# conditional sub-setting for data frames
+# Suppose we only want to analyze wine with an alcohol content greater than 14%
+
+# extract the alcohol content column
+alcohol_content <- wine_data$alcohol
+alcohol_content
+
+# then find elements greater than 14%
+alcohol_content > 14
+
+# now we can extract all the wines with an alcohol content >14%
+wine_data[alcohol_content>14, ]
+
+# make a new object that only indludes strong wines
+very_strong_wines <- wine_data[alcohol_content>14, ]
+very_strong_wines
+```
+
+How to replace terms in a data frame
+
+```{r}
+
+# we want to replace the term "Rose" with "Rosado" in the wine_data data frame
+# first, check which wines are of the Rose type:
+wine_data$wine_type == "Rose"
+
+# replace
+wine_data$wine_type[wine_data$wine_type == "Rose"] <- "Rosado"
+summary(wine_data)
+
+# shows frequency of each wine type
+table(wine_data$wine_type)
+```
+
+## Class Two 1/19/2022
+
+###LECTURE 4 MATERIAL
+
+Processing and cleaning data
+
+Useful R Commands, Codes & Functions
+**1. Data Frame Characteristics**
+dim( )                Returns dimensions of 2-D data structures
+str( )                Gives in-depth overview of the data structure
+**2. Examining Specific Variables**
+colnames( )           Returns names of columns in data frame
+all( )                Function that only returns a true value if all specified values
+                      are TRUE
+is.na( )              Checks if a vector includes missing values/NA values
+na.rm( )              When set to TRUE, it will ignore NA values
+**3. Explaining or Summarizing Numeric**
+summary( )            Return descriptive statistics
+sd( )                 Returns the standard deviation of vector
+table( )              Returns the distribution of counts 
+table( )/length( )    Returns the proportion of the total values
+unique( )             Returns all unique values in a vector
+duplicated( )         Returns a conditional if a value has already appeared
+merge( )              Merge two data frames
+%in%,                 Read as "is included in"
+
+``` {r}
+
+# find the dimensions of the data frame
+dim(wine_data)
+
+# more indepth overview of the data frame
+str(wine_data)
+
+# only column names
+colnames(wine_data)
+
+# is ask one of the variables in your data set?
+"ash" %in% colnames(wine_data)
+
+# are each of the columns in your data set named "ash"?
+colnames(wine_data) %in% "ash"
+
+# all function to return whether multiple columns are in a data frame
+required_cols <- c("color_intensity", "hue", "price")
+all(required_cols %in% colnames(wine_data))
+# we get a false return because price is not included in the column names
+
+# subset the vector of columns were looking for by the conditional response to 
+# the %in% operator
+required_cols[!required_cols %in% colnames(wine_data)]
+
+# change a column name
+colnames(wine_data)[colnames(wine_data) == "OD280_OD315_of_diluted_wines"] <- "protein content"
+colnames(wine_data)
+
+# how do missing variables/NAs affect analysis?
+x <- c(1, 2, NA, 4)
+max(x)
+min(x)
+mean(x)
+
+# na breaks conditional statements too
+NA >1
+NA < 100
+NA == 11
+
+# test for the location of the missing values
+is.na(x)
+
+# test whether there is an NA value in any of the vectors
+any(is.na(x))
+
+# one option is to ignore the NA vlue and perform analysis on all of the other numerical values
+max(x, na.rm = T)
+
+sum(x, na.rm = T)
+
+# assinging new values to the NA/missing values
+x[is.na(x)] <- 0
+x
+# note: generally, this procedure should only be performed if there is strong evidence that all of the NAs/missing values should be zeros instead
+
+# exploratory summary for one vector
+summary(wine_data$color_intensity)
+sd(wine_data$color_intensity)
+
+table(wine_data$wine_type)
+table(wine_data$malic_acid)
+#table is the most useful for categorical/qualitative vectors, integer vectors, or vectors with fewer unique values
+# we can use a conditional statement to return a more useful summary of this vector
+table(wine_data$malic_acid > 2)
+table(wine_data$alcohol >14)
+
+unique(wine_data$wine_type)
+duplicated(wine_data$malic_acid)
+
+# what if we want to find the wines with magnesium level > 100 based on the wine_type
+table(wine_data$wine_type, wine_data$magnesium >100)
+```
+
+**How do we perform an Exploratory Data Analysis (EDA)**
+NOT NECESSARILY IN THIS ORDER:
+1. Gather information about the data frame and individual column vectors (size, types of elements, etc)
+2. Find frequency counts, proportion of unique values, or duplicate values
+3. Graph (via histograms, bar graphs, scatter plots, etc) the key variables
+4. Find identify and ignore or replace missing NA/missing values with new values
+5. Examine the correlations between variables
+
+###LECTURE 5 MATERIAL###
+
+Summarizing and Manipulating Data
+
+Useful R Commands, Codes & Functions
+1. Changing and navigating variable classes
+Strings Vs. Factors
+**Strings** are just the characters
+**Factors**: each element is assigned an index position/integer value (known as levels)
+Categorical variables should be factors
+*Reminder* as.+ converts to another variable class
+*Reminder* class( ) will confirm the class of an object
+
+**More complicated Data Exploration Techniques**
+lapply( )           function that iterates on every element in a list
+sapply( )           function that iterates over the data given by each vector
+is.factor( )        perform a conditional check on whether a data class is a factor
+split( )            carve a data frame into pieces by a specification
+ldply( )            reassembles pieces into a new data frame
+*instal plyr package for ldply*
+function{ }         perform any custom operation
+*( ) are for premade functions, { } are for user made functions*
+
+### EDA for Homework Problem Set
+
+Heart Disease Data Set
+**Question 1**
+1. name columns
+2. convert missing values to NA
+3. convert number_vessels to numeric
+4. convert thal to factor
+5. check for NAs
+6. remove NAs (subset to all not NA values)
+7. histogram for all variables
+8. correlations between numeric variables
+
+### LECTURE 6 MATERIAL
+Constructing on Exploratory Data Analysis
+
+**1. Examining Individual Variables**
+
+Three categories => 
+  1. Continuous: values exist on an ordinal/numeric spectrum
+    Ex: height, weight, rainfall, etc
+  2. Category/Discrete: possible values are limited to a discrete setting
+    Ex: color, gender, horoscope
+  3. Identification: values are unique to every individual or observation
+    Ex: SSN, Credit Card Number
+
+**Useful R commands Codes & Functions**
+ifelse( )           conditional which returns a different result based on an underlying specification
+na.rm( )            removed missing value/NAs
+
+converting data values
+scale( )            converts numeric vector into a z-score
+ecdf( )             converts a numeric vector into a percentile value
+
+General code/functions
+head( )             returns header and initial values of df
+rnorm( )            generate a normal random variable (can specify the mean and sd)
+rexp( )             generates a variable with exponential distribution
+
+Graphing commands
+hist( )             generates a histogram
+plot( )             generates a scatterplot
+cor( )              find the correlation between variables
+by( )               choose which vector to subset
+
+```{r}
+# constructing an EDA (with assigning new values to the NAs_)
+
+#strings as factos
+surveys <- read.csv("../ECON 621/student_surveys.csv", stringsAsFactors = FALSE)
+summary(surveys)
+summary(as.factor((surveys$Gender)))
+
+#make sure to set strings/character vectors as factors so R returns useful information in the summary
+surveys <- read.csv("../ECON 621/student_surveys.csv", stringsAsFactors = TRUE)
+summary(surveys)
+
+#what are all the unique values in each column?
+sapply(surveys[, na_cols], unique)
+#in the output we can find the missing/na values that we want to address and clean up
+
+#assign columns with missing values to a new object
+na_cols <- c("Horoscope", "Subject", "SpendTime1", "SpendTime2", "Self1", "Self2", "Career", "Superpower")
+
+#we want to convert proxy NA values to nas
+nas <- c("", "n/a", "N/A")
+
+#assign NA as the new name for the missing values
+surveys[, na_cols] <- sapply(surveys[, na_cols], function(x){
+  x[x %in% nas] <- NA
+  return(x)
+})
+
+library(plyr)
+#we need to reassemble the columns
+ldply(sapply(surveys, function(x){table(is.na(x))}), rbind)
+```
+**Different Options for missing values/NAs**
+1. we can remove observations with missing values (check problem set solutions from 1/19)
+2. replace based on variable distribution, we can portentially replace missing values with the median or the mode value of the variable (mitigate the impact of the NAs)
+```{r}
+#replace missing values in PhysActive with the median
+surveys$PhysActive <- ifelse(is.na(surveys$PhysActive), median(surveys$PhysActive, na.rm = T), surveys$PhysActive)
+# remove the missing value while calculating the median otherwise will return an error (na.rm = T)
+#if else part will just perform the action on the missing value and not all the values
+#only works for continous variables
+```
+3. for categorical variables, we can replace NAs with "I dont Know" or "No response"
+```{r}
+#students in the career category responded with "I Don't Know" as a reponse. Convert NAs to "idk"
+surveys$Career <- ifelse(is.na(surveys$Career), "idk", surveys$Careers)
+
+#for other character variables, we'll convert 
+surveys[, c("Subject", "Self1", "Self2", "Superpower")] <- sapply(surveys[, c("Subject", "Self1", "Self2", "Superpower")], function(x){
+  x <- ifelse(is.na(x), "no response", x)
+  return(x)
+})
+
+#check our conversions
+sapply(surveys[, na_cols], unique)
+
+#after our conversions, what is the number of observations with NAs
+table(apply(surveys, 1, function(x) {any(is.na(x))}))
+
+#what if we want to remove variables with a significant portion of NAs?
+surveys <- surveys[!apply(surveys, 1, function(x) {any(is.na(x))}), ]
+```
+z-scores
+```{r}
+#what if we want to convert a numeric vector into z-scores
+surveys$ScreenTime_z <- scale(surveys$ScreenTime)
+summary(surveys$ScreenTime)
+summary(surveys$ScreenTime_z)
+
+#what if we want to convert to percentile values
+surveys$ScreenTime_perc <- ecdf(surveys$ScreenTime)(surveys$ScreenTime)
+summary(surveys$ScreenTime_perc)
+```
+**Lecture 7 Material**
+Describing Relationships Between Variables
+Numerically & Graphically
+
+Useful R commands, codes & functions
+hist( )       Histogram
+plot( )       Scatter plot 
+barplot( )    Bar chart
+abline( )     Adds a straight line to graph, and lines of best fit ( ln() )
+ggplot2       Package with more robust graphing options
+```{r}
+airports <- read.csv("../ECON 621/airports.csv", stringsAsFactors = T)
+summary(airports)
+
+hist(airports$altitude)
+
+# we can modify the number of bins in the histogram with the bins argument 
+hist(airports$altitude, breaks=100)
+
+# we can add lines to the graph to denote certain altitudes. we want to add a red line to represent the avg alt./airports and a blue
+# line for altitude of 1 mile/5280ft
+hist(airports$altitude, breaks=100)
+abline(v = mean(airports$altitude), col = "red")
+abline(v = 5280, col = "blue")
+
+# scatterplot that shows the relationship between wine hue and color intensity
+plot(wine_data$color_intensity, wine_data$hue)
+
+# customize this graph
+plot(wine_data$color_intensity, wine_data$hue, xlab = "Color Intensity", ylab = "Hue", main = "Why do a sctterplot with so few values?",
+     cex = 2, pch  = 15, col = "firebrick")
+abline(v = mean(wine_data$color_intensity), h=1, lty = 2)
+
+library(ggplot2)
+ggplot(data = wine_data, aes(x = wine_type)) + geom_bar()
+ggplot(data = wine_data, aes(x = wine_type, fill = wine_type)) + geom_bar()
+```
+### LECTURE 7 MATERIAL
+
+**Building automated processes**
+
+Useful R Commands, Codes, & Functions
+ifelse statement            A set of code that executes operations based on satisfaction of a specified condition
+iselse function             For vector operations, this function is used to perform the if/else process to every element in the vector 
+function{ }                 to build a function in R we need 4 specific components:
+1. name: describe what the function does
+2. arguments:  inputs for the function
+3. body: enclosed in the {} code developed to perform specific actions
+4. output: what the function returns 
+
+Formatting for a function:
+my_function <- function(x, y) {
+  code operations
+  return(result)
+}
+
+name of the function <- arguments/inputs{
+  body of the code
+  output
+}
+
+NOTE: objects made in a function only exist there (not in the global environment)
+```{r}
+#building an automated process
+pythagorean <- function(a, b) {
+  hypotenuse <- sqrt(a^2 + b^2)
+  return(hypotenuse)
+}
+
+pythagorean(a = 3, b = 4)
+```
+
+IF ELSE function formatting in R:
+if(condition) {# code executed when condition is TRUE
+  } else { }
+}
+
+```{r}
+# age ifelse function that diverts code based on the reported age of an individual
+age <- 22
+if (age<21) {
+  print("I'm sorry, I can't let you in here.")
+} else {
+  print("I have to check everyone. thanks")
+}
+
+# we nest an ifelse inside another ifelse
+age <- 18
+if (age == 21) {
+  print("Do you have any other forms of identification?")
+} else if (age < 21) {
+   print("I'm sorry, I can't let you in here")
+} else {
+  print("I have to check everyone. thanks")
+}
+```
+
+Combining things:
+```{r}
+wine_data <- read.csv("../ECON 621/wine_components.csv")
+
+# we want to determine whether a wine has less than 14% alcohol
+ifelse(wine_data$alcohol < 14, 1, 0)
+
+# we can add this wine content vector to the data frame as a new variable
+wine_data$low_alc <- ifelse(wine_data$alcohol < 14, 1, 0)
+head(wine_data)
+
+# nesting ifelse statements inside functions
+wine_data$alcohol_level <- ifelse(wine_data$alcohol <13, "Less than 13%",
+                                  ifelse(wine_data$alcohol <14,
+                                         "Between 13% and 14%", "MOre than 14%"))
+head(wine_data[, c("wine_type", "alcohol", "alcohol_level")])
+```
+
+More robust function =>
+
+operations:
+1. read the data in
+2. check for the required columns
+3. rename one of the columns
+4. convert all factor variables to character
+5. convert that numeric columns are numeric
+6. create a z-score variable
+7. re-order the columns
+```{r}
+#our more robust R function
+data_clean <- function(csv) {
+  data <- wine_data <- read.csv("../ECON 621/wine_components.csv")
+  print(all(c("wine_type", "alcohol", "magnesium", "color_intensity", "hue") %in% colnames(data)))
+  colnames(data)[which(colnames(data == "OD280_OD315_of_diluted_wine"))] <- "protein_content"
+  data[, sapply(data, is.factor)] <- sapply(data[, sapply(data, is.factor)], as.character)
+  numeric_cols <- c("alcohol", "malic_acid", "ash", "alcalinity_of_ask", "magnesium")
+  data[, numeric_cols] <- sapply(data[, numeric_cols], as.numeric)
+  data$z_score_malic_acid <- scale(data$malic_acid)
+  data[, c("wine_type", "alcohol", "magnesium", "color_intesity", "hue","z_score_malic_acid")]
+}
+```
+Now we want the function to report back what it's doing:

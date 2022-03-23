@@ -1,0 +1,108 @@
+---
+title: "ECON 621"
+author: "Brooke Johnson"
+date: "1/21/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Final Exam - take home
+```{r}
+# load the data set:
+fraud <- read.csv("../ECON 621/cc_fraud.csv", stringsAsFactors = TRUE)
+```
+First look at the data set:
+```{r}
+# getting the dimension:
+dim(fraud)
+
+# getting a look at the data:
+head(fraud)
+colnames(fraud)
+
+# data types:
+str(fraud)
+
+# review of the data set details:
+summary(fraud)
+# it looks like there are some columns at the end that are worth dropping
+# there are some variables that have missing values that should be replaced with na
+
+# taking a closer look at of the columns
+unique(fraud$merchantCity)
+# this column doesn't contain any formation so it is worth dropping
+```
+Dealing with NAs:
+```{r}
+# there are some missing values to fix:
+# assign columns with missing values to a new object
+na_cols <- c("acqCountry", "merchantCountryCode", "transactionType")
+
+# we want to convert proxy NA values to nas
+nas <- c("", "n/a", "N/A")
+
+# assign NA as the new name for the missing values
+fraud[, na_cols] <- sapply(fraud[, na_cols], function(x){
+  x[x %in% nas] <- NA
+  return(x)
+})
+
+table(apply(fraud, 1, function(x) {any(is.na(x))}))
+
+# checking to make sure replacing na was successful: 
+summary(fraud)
+```
+
+Converting back the changed columns:
+```{r}
+# convert the three na_cols back to factors
+fraud$acqCountry <- as.factor(fraud$acqCountry)
+fraud$merchantCountryCode <- as.factor(fraud$merchantCountryCode)
+fraud$transactionType <- as.factor(fraud$transactionType)
+
+```
+Dropping the columns that don't add to the data analysis:
+```{r}
+summary(fraud)
+
+fraud <- fraud[, !(colnames(fraud) %in% c("merchantCity", "merchantState", "merchantZip","posOnPremises", "recurringAuthInd", "echoBuffer"))]
+colnames(fraud)
+```
+Looking at the distribution:
+```{r}
+# looking at the distribution of the categorical variables:
+cat_cols <- c("merchantName", "acqCountry", "merchantCountryCode", "merchantCategoryCode", "transactionType")
+sapply(fraud[, cat_cols], function(x) {
+  c(head(sort(table(x)/length(x), decreasing = T)), n_unique_vals = length(unique(x)))
+})
+```
+Histograms:
+
+A note, my code for the histograms runs perfectly fine, I've checked it at least 80 million times at this point. However, when I try to knit the document I get an error message and the "render" tap indicates that the histogram line of code is the problem. I've emailed Dr. Tung regarding this issue and am instead providing photos of the output in my PDF submission separately. The code below is commented out. 
+```{r}
+
+# histograms for the numeric variables:
+# summary(fraud)
+# hist(fraud$creditLimit, main = "Distribution of Credit Limit", xlab = "Credit Limit")
+# hist(fraud$availableMoney, main = "Distribution of Available Money", xlab = "Available Money")
+# something identifiable here is that the data is skewed strongly to the right, with the most observations at the low end of the amount of money available
+# hist(fraud$transactionAmount, main = "Distribution of Transaction Amounts", xlab = "Transaction Amounts")
+# hist(fraud$currentBalance, main = "Distribution of Current Balances", xlab = "Current Balance")
+# the current balance amounts are consistent with the available money distribution
+# this isn't too surprising since the two terms are in most cases synonymous 
+
+# numeric variables that I didn't make into a histogram: accountNumber, CustomerId, posEntryMode, posConditionCode, cardCVV, enteredCVV, CardLast4Digits
+# Because it is not very explanatory to consider their distribution, they are mostly just identifier used for people/cards
+```
+covariance:
+```{r}
+# examining the covariance between variables:
+num_cols <- c("creditLimit", "availableMoney","transactionAmount", "currentBalance")
+cor(fraud[, num_cols])
+# it makes sense that we see availableMoney and CreditLimit strongly correlated, someone with a lot of money in the bank is likely to receive better credit offers like higher credit limits
+# I'm surprised to see that availableMoney and currentBalance aren't more strongly correlated
+```
+This has given us a good idea what information the data contains. All the variables are cleaned up and ready to use for analysis. We have a preliminary idea of the time of relationships that exist between the variables, and we can create structure to the questions asked from here. 
